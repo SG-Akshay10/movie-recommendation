@@ -24,7 +24,7 @@ def fetch_poster(movie_id):
     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
     return full_path
 
-def recommend(movie):
+def get_recommend(movie):
     index = movies[movies['title'] == movie].index[0]
     distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
     recommended_movie_names = []
@@ -61,16 +61,16 @@ def login():
 def home():
     if 'loggedin' in session:
         movie_title = movies['title'].values
+        if request.method == 'POST':
+            selected_movie_name = request.form['movies']
+            return redirect(url_for('recommend', selected_movie_name=selected_movie_name))
         return render_template('home.html',movie_title=movie_title)
     else:
         return redirect(url_for('login'))
 
-@app.route('/recommend', methods=['POST'])
-def recommend():
-    selected_movie_name = request.form['movie-select']
-    print(selected_movie_name)
-    recommended_movie_names, recommended_movie_posters = recommend(selected_movie_name)
-    print(recommended_movie_names)
+@app.route('/recommend/<selected_movie_name>', methods=['GET'])
+def recommend(selected_movie_name):
+    recommended_movie_names, recommended_movie_posters = get_recommend(selected_movie_name)
     return render_template('recommend.html', recommended_movie_names=recommended_movie_names, recommended_movie_posters=recommended_movie_posters)
 
 @app.route('/forgot', methods=['GET', 'POST'])
